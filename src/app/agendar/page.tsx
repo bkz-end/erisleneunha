@@ -39,128 +39,121 @@ export default function AgendarPage() {
 
   return (
     <main className="min-h-screen bg-gradient-luxury relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-pastel-rose/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-pastel-peach/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-      <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-luxury-champagne/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+      {/* Decorative elements - menores no mobile */}
+      <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-pastel-rose/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 bg-pastel-peach/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
 
       {/* Content */}
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="pt-16 pb-8 px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-sm rounded-full mb-6 border border-rose-gold-light/30">
+      <div className="relative z-10 px-4 sm:px-6">
+        {/* Header - otimizado para mobile */}
+        <header className="pt-10 sm:pt-16 pb-6 sm:pb-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/60 backdrop-blur-sm rounded-full mb-4 sm:mb-6 border border-rose-gold-light/30">
             <span className="w-2 h-2 bg-rose-gold rounded-full animate-pulse-soft" />
-            <span className="text-sm text-rose-gold-dark font-medium">Agendamento Online</span>
+            <span className="text-xs sm:text-sm text-rose-gold-dark font-medium">Agendamento Online</span>
           </div>
           
-          <h1 className="font-display text-4xl md:text-6xl text-rose-gold-dark mb-4 leading-tight">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl text-rose-gold-dark mb-3 sm:mb-4 leading-tight">
             Agende seu
             <span className="block text-gold-gradient">Momento Especial</span>
           </h1>
           
-          <p className="text-stone-500 text-lg max-w-md mx-auto leading-relaxed">
-            Escolha o servico perfeito e reserve seu horario com apenas alguns cliques
+          <p className="text-stone-500 text-sm sm:text-base max-w-sm mx-auto leading-relaxed px-2">
+            Escolha o serviço perfeito e reserve seu horário
           </p>
-          
-          <div className="mt-8 flex justify-center">
-            <div className="w-32 line-elegant" />
-          </div>
         </header>
 
-        {/* Step Indicator */}
-        <div className="flex justify-center items-center gap-3 mb-12 px-4">
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm px-6 py-3 rounded-full border border-rose-gold-light/30">
-            <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-rose-gold text-white flex items-center justify-center text-sm font-semibold shadow-glow">
+        {/* Step Indicator - compacto no mobile */}
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <div className="flex items-center gap-2 sm:gap-3 bg-white/60 backdrop-blur-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border border-rose-gold-light/30">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-rose-gold text-white flex items-center justify-center text-xs sm:text-sm font-semibold shadow-glow">
                 1
               </span>
-              <span className="text-rose-gold-dark font-medium">Servico</span>
+              <span className="text-rose-gold-dark font-medium text-xs sm:text-sm">Serviço</span>
             </div>
-            <div className="w-12 h-px bg-neutral-elegant" />
-            <div className="flex items-center gap-2 opacity-50">
-              <span className="w-8 h-8 rounded-full bg-neutral-elegant text-stone-400 flex items-center justify-center text-sm">
+            <div className="w-6 sm:w-10 h-px bg-neutral-elegant" />
+            <div className="flex items-center gap-1.5 sm:gap-2 opacity-50">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-elegant text-stone-400 flex items-center justify-center text-xs sm:text-sm">
                 2
               </span>
-              <span className="text-stone-400">Horario</span>
+              <span className="text-stone-400 text-xs sm:text-sm hidden sm:inline">Horário</span>
             </div>
-            <div className="w-12 h-px bg-neutral-elegant" />
-            <div className="flex items-center gap-2 opacity-50">
-              <span className="w-8 h-8 rounded-full bg-neutral-elegant text-stone-400 flex items-center justify-center text-sm">
+            <div className="w-6 sm:w-10 h-px bg-neutral-elegant" />
+            <div className="flex items-center gap-1.5 sm:gap-2 opacity-50">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-elegant text-stone-400 flex items-center justify-center text-xs sm:text-sm">
                 3
               </span>
-              <span className="text-stone-400">Dados</span>
+              <span className="text-stone-400 text-xs sm:text-sm hidden sm:inline">Dados</span>
             </div>
           </div>
         </div>
 
-
-        {/* Services Grid */}
-        <div className="max-w-5xl mx-auto px-4 pb-20">
+        {/* Services Grid - cards maiores e mais bonitos no mobile */}
+        <div className="max-w-5xl mx-auto pb-24">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex flex-col items-center justify-center py-16">
               <div className="relative">
-                <div className="w-16 h-16 border-4 border-pastel-rose rounded-full" />
-                <div className="w-16 h-16 border-4 border-rose-gold border-t-transparent rounded-full animate-spin absolute inset-0" />
+                <div className="w-14 h-14 border-4 border-pastel-rose rounded-full" />
+                <div className="w-14 h-14 border-4 border-rose-gold border-t-transparent rounded-full animate-spin absolute inset-0" />
               </div>
-              <p className="mt-6 text-rose-gold font-medium">Carregando servicos...</p>
+              <p className="mt-5 text-rose-gold font-medium text-sm">Carregando serviços...</p>
             </div>
           ) : error ? (
-            <div className="card-glass p-12 text-center max-w-md mx-auto">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-pastel-rose flex items-center justify-center">
-                <svg className="w-10 h-10 text-rose-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="card-glass p-8 text-center mx-2">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pastel-rose flex items-center justify-center">
+                <svg className="w-8 h-8 text-rose-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <p className="text-rose-gold-dark font-medium">{error}</p>
+              <p className="text-rose-gold-dark font-medium text-sm">{error}</p>
             </div>
           ) : services.length === 0 ? (
-            <div className="card-glass p-12 text-center max-w-md mx-auto">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-pastel-cream flex items-center justify-center">
-                <svg className="w-10 h-10 text-luxury-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="card-glass p-8 text-center mx-2">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-pastel-cream flex items-center justify-center">
+                <svg className="w-8 h-8 text-luxury-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
               </div>
-              <p className="text-stone-600">Nenhum servico disponivel no momento.</p>
+              <p className="text-stone-600 text-sm">Nenhum serviço disponível no momento.</p>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {services.map((service, index) => (
+            <div className="space-y-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 sm:space-y-0">
+              {services.map((service) => (
                 <Link
                   key={service.id}
                   href={`/agendar/${service.id}`}
                   className="group block"
-                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="card-luxury p-6 h-full flex flex-col">
-                    {/* Service icon/decoration */}
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pastel-rose to-pastel-peach flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
-                      <svg className="w-7 h-7 text-rose-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                      </svg>
-                    </div>
-
-                    {/* Service info */}
-                    <h2 className="font-display text-xl text-rose-gold-dark mb-2 group-hover:text-rose-gold transition-colors">
-                      {service.name}
-                    </h2>
-                    
-                    <div className="flex items-center gap-3 text-stone-500 text-sm mb-4">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <div className="card-luxury p-5 sm:p-6 h-full flex flex-col active:scale-[0.98] transition-transform">
+                    {/* Service header com ícone */}
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pastel-rose to-pastel-peach flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+                        <svg className="w-6 h-6 sm:w-7 sm:h-7 text-rose-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                         </svg>
-                        {formatDuration(service.duration)}
-                      </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="font-display text-lg sm:text-xl text-rose-gold-dark mb-1 group-hover:text-rose-gold transition-colors truncate">
+                          {service.name}
+                        </h2>
+                        <div className="flex items-center gap-1.5 text-stone-500 text-sm">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>{formatDuration(service.duration)}</span>
+                        </div>
+                      </div>
                     </div>
 
+                    {/* Preço e botão */}
                     <div className="mt-auto pt-4 border-t border-pastel-rose/50 flex items-center justify-between">
-                      <span className="text-2xl font-display text-rose-gold">
+                      <span className="text-xl sm:text-2xl font-display text-rose-gold">
                         {formatPrice(service.price)}
                       </span>
-                      <span className="flex items-center gap-2 text-rose-gold-muted group-hover:text-rose-gold transition-colors">
-                        <span className="text-sm font-medium">Agendar</span>
-                        <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      <span className="flex items-center gap-2 bg-rose-gold/10 text-rose-gold px-4 py-2 rounded-full text-sm font-medium group-hover:bg-rose-gold group-hover:text-white transition-all">
+                        Agendar
+                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </span>
                     </div>
@@ -172,20 +165,20 @@ export default function AgendarPage() {
         </div>
 
         {/* Footer decoration */}
-        <div className="text-center pb-8">
-          <p className="text-stone-400 text-sm">
-            ✨ Experiencia exclusiva de beleza ✨
+        <div className="text-center pb-6">
+          <p className="text-stone-400 text-xs sm:text-sm">
+            ✨ Experiência exclusiva de beleza ✨
           </p>
         </div>
       </div>
 
-      {/* Admin link - discreto mas visível */}
+      {/* Admin link - menor no mobile */}
       <Link
         href="/admin/login"
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-rose-gold-muted hover:text-rose-gold hover:bg-white hover:shadow-soft transition-all duration-300 border border-pastel-rose/50 cursor-pointer"
-        title="Area administrativa"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-rose-gold-muted hover:text-rose-gold hover:bg-white hover:shadow-soft transition-all duration-300 border border-pastel-rose/50"
+        title="Área administrativa"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>

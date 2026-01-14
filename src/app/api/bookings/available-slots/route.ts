@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getServiceById } from "@/services/services";
 
+export const dynamic = "force-dynamic";
+
 interface AvailableSlot {
   time: string;
   dateTime: string;

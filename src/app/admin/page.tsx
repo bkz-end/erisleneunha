@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // Trial banner component
+  // Trial banner component - responsivo
   function TrialBanner() {
     if (!subscription || subscription.status !== "trial" || subscription.trialDaysRemaining === null) {
       return null;
@@ -175,33 +175,33 @@ export default function AdminDashboardPage() {
             : "bg-yellow-50 border border-yellow-200"
         }`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                 isUrgent ? "bg-red-100" : "bg-yellow-100"
               }`}
             >
               <span className="text-xl">{isUrgent ? "⚠️" : "⏰"}</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <h3
-                className={`font-semibold ${
+                className={`font-semibold text-sm sm:text-base ${
                   isUrgent ? "text-red-800" : "text-yellow-800"
                 }`}
               >
                 {isUrgent
-                  ? `Atenção! Seu período de teste termina em ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""}!`
-                  : `Você está no período de teste - ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""} restante${daysRemaining !== 1 ? "s" : ""}`}
+                  ? `Atenção! Teste termina em ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""}!`
+                  : `Período de teste - ${daysRemaining} dia${daysRemaining !== 1 ? "s" : ""} restante${daysRemaining !== 1 ? "s" : ""}`}
               </h3>
               <p
-                className={`text-sm ${
+                className={`text-xs sm:text-sm ${
                   isUrgent ? "text-red-600" : "text-yellow-600"
                 }`}
               >
                 {isUrgent
-                  ? "Assine agora para não perder acesso ao sistema!"
-                  : "Aproveite todas as funcionalidades durante o teste gratuito."}
+                  ? "Assine agora para não perder acesso!"
+                  : "Aproveite todas as funcionalidades."}
               </p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function AdminDashboardPage() {
             href="https://www.mercadopago.com.br/subscriptions"
             target="_blank"
             rel="noopener noreferrer"
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`w-full sm:w-auto text-center px-4 py-2.5 rounded-lg font-medium transition-colors text-sm ${
               isUrgent
                 ? "bg-red-600 hover:bg-red-700 text-white"
                 : "bg-yellow-600 hover:bg-yellow-700 text-white"
@@ -224,10 +224,14 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-neutral-soft p-8">
+      <main className="min-h-screen bg-neutral-soft p-4 sm:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
-            <p className="text-gray-500">Carregando dashboard...</p>
+            <div className="relative inline-block">
+              <div className="w-12 h-12 border-4 border-pastel-rose rounded-full" />
+              <div className="w-12 h-12 border-4 border-rose-gold border-t-transparent rounded-full animate-spin absolute inset-0" />
+            </div>
+            <p className="text-gray-500 mt-4">Carregando dashboard...</p>
           </div>
         </div>
       </main>
@@ -235,28 +239,30 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-soft p-8">
+    <main className="min-h-screen bg-neutral-soft p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-3xl text-rose-gold-dark">
-              Painel Administrativo
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Bem-vinda de volta! Aqui está o resumo do seu dia.
-            </p>
+        {/* Header - responsivo */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display text-2xl sm:text-3xl text-rose-gold-dark truncate">
+                Painel Administrativo
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                Bem-vinda de volta! ✨
+              </p>
+            </div>
+            <Link
+              href="/admin/configuracoes"
+              className="flex-shrink-0 flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow text-gray-600 hover:text-rose-gold"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="hidden sm:inline ml-2">Configurações</span>
+            </Link>
           </div>
-          <Link
-            href="/admin/configuracoes"
-            className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow text-gray-600 hover:text-rose-gold"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Configuracoes
-          </Link>
         </div>
 
         {/* Error Message */}

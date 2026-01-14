@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS subscription (
   CONSTRAINT status_check CHECK (status IN ('active', 'inactive', 'expired', 'trial'))
 );
 
--- Tabela de Admin (Keyla)
--- Requirement 7.5: Armazenar credenciais da Keyla de forma segura
+-- Tabela de Admin (Erislene)
+-- Requirement 7.5: Armazenar credenciais da Erislene de forma segura
 CREATE TABLE IF NOT EXISTS admin_user (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,

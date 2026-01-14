@@ -186,7 +186,7 @@ export default function DadosClientePage({ params }: PageProps) {
           `Aguardo confirmação! 💕`
         );
         
-        const targetWhatsApp = adminWhatsApp || process.env.NEXT_PUBLIC_KEYLA_WHATSAPP || "5511999999999";
+        const targetWhatsApp = adminWhatsApp || process.env.NEXT_PUBLIC_ERISLENE_WHATSAPP || "5511999999999";
         const whatsappUrl = `https://wa.me/55${targetWhatsApp}?text=${whatsappMessage}`;
         
         window.location.href = whatsappUrl;

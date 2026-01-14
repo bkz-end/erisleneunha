@@ -3,7 +3,7 @@
  * 
  * Requirements:
  * - 5.4: Armazenar senhas de forma segura usando hash
- * - 7.5: Armazenar credenciais da Keyla de forma segura
+ * - 7.5: Armazenar credenciais da Erislene de forma segura
  * - 5.2: Criar sessão autenticada com credenciais válidas
  * - 5.3: Exibir mensagem de erro com credenciais inválidas
  * - 5.5: Redirecionar para login quando sessão expira
