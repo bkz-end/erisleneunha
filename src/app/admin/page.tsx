@@ -13,6 +13,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { SubscriptionStatus, BookingStatus } from "@/types/database";
+import Tutorial, { HelpButton } from "@/components/Tutorial";
 
 interface SubscriptionInfo {
   status: SubscriptionStatus;
@@ -54,9 +55,16 @@ export default function AdminDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
+    // Mostrar tutorial automaticamente na primeira visita
+    const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+      localStorage.setItem("hasSeenTutorial", "true");
+    }
   }, []);
 
   async function fetchDashboardData() {
@@ -487,6 +495,10 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Tutorial e botão de ajuda */}
+      <Tutorial isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
+      <HelpButton onClick={() => setShowTutorial(true)} />
     </main>
   );
 }
