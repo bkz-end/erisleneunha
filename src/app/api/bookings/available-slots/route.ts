@@ -63,6 +63,18 @@ export async function GET(request: NextRequest) {
     const selectedDate = new Date(dateStr + "T12:00:00");
     const dayOfWeek = selectedDate.getDay();
 
+    // Check if this date is a day off
+    const { data: dayOff } = await supabase
+      .from("days_off")
+      .select("id")
+      .eq("date", dateStr)
+      .single();
+
+    if (dayOff) {
+      // This is a day off, no slots available
+      return NextResponse.json({ slots: [] });
+    }
+
     // Get available time slots for this day of week
     const { data: timeSlots, error: timeSlotsError } = await supabase
       .from("time_slots")

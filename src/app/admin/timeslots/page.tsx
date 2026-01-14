@@ -1,438 +1,472 @@
 "use client";
 
 /**
- * Time Slots Management Page
+ * Time Slots Management Page - VERSÃO MELHORADA
  * 
- * Requirements:
- * - 4.5: Gestão de horários disponíveis para agendamento
+ * Sistema inteligente de horários:
+ * - Define horário de trabalho por dia da semana
+ * - Intervalo automático entre atendimentos
+ * - Dias de folga
+ * - Geração automática de slots
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { TimeSlot } from "@/types/database";
 
-interface TimeSlotFormData {
-  day_of_week: string;
+interface WorkSchedule {
+  day_of_week: number;
+  enabled: boolean;
   start_time: string;
   end_time: string;
-  available: boolean;
+  break_start?: string;
+  break_end?: string;
 }
 
-const initialFormData: TimeSlotFormData = {
-  day_of_week: "1",
-  start_time: "09:00",
-  end_time: "10:00",
-  available: true,
-};
+interface DayOff {
+  id?: string;
+  date: string;
+  reason?: string;
+}
 
 const DAYS_OF_WEEK = [
-  { value: 0, label: "Domingo" },
-  { value: 1, label: "Segunda-feira" },
-  { value: 2, label: "Terça-feira" },
-  { value: 3, label: "Quarta-feira" },
-  { value: 4, label: "Quinta-feira" },
-  { value: 5, label: "Sexta-feira" },
-  { value: 6, label: "Sábado" },
+  { value: 0, label: "Domingo", short: "Dom" },
+  { value: 1, label: "Segunda", short: "Seg" },
+  { value: 2, label: "Terça", short: "Ter" },
+  { value: 3, label: "Quarta", short: "Qua" },
+  { value: 4, label: "Quinta", short: "Qui" },
+  { value: 5, label: "Sexta", short: "Sex" },
+  { value: 6, label: "Sábado", short: "Sáb" },
 ];
 
-export default function TimeSlotsPage() {
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  
-  // Form state
-  const [formData, setFormData] = useState<TimeSlotFormData>(initialFormData);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+const DEFAULT_SCHEDULE: WorkSchedule[] = DAYS_OF_WEEK.map(day => ({
+  day_of_week: day.value,
+  enabled: day.value >= 1 && day.value <= 5, // Seg-Sex por padrão
+  start_time: "09:00",
+  end_time: "18:00",
+  break_start: "12:00",
+  break_end: "13:00",
+}));
 
-  // Fetch time slots on mount
+export default function TimeSlotsPage() {
+  const [schedule, setSchedule] = useState<WorkSchedule[]>(DEFAULT_SCHEDULE);
+  const [daysOff, setDaysOff] = useState<DayOff[]>([]);
+  const [newDayOff, setNewDayOff] = useState<string>("");
+  const [newDayOffReason, setNewDayOffReason] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<"schedule" | "daysoff">("schedule");
+
   useEffect(() => {
-    fetchTimeSlots();
+    fetchSchedule();
   }, []);
 
-  async function fetchTimeSlots() {
+  async function fetchSchedule() {
     try {
       setLoading(true);
       const response = await fetch("/api/timeslots");
       const data = await response.json();
       
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao carregar horários");
+      if (data.timeSlots && data.timeSlots.length > 0) {
+        // Converter slots existentes para o novo formato
+        const existingSchedule = [...DEFAULT_SCHEDULE];
+        
+        for (const slot of data.timeSlots) {
+          const dayIndex = existingSchedule.findIndex(s => s.day_of_week === slot.day_of_week);
+          if (dayIndex !== -1) {
+            existingSchedule[dayIndex] = {
+              ...existingSchedule[dayIndex],
+              enabled: slot.available,
+              start_time: slot.start_time.substring(0, 5),
+              end_time: slot.end_time.substring(0, 5),
+            };
+          }
+        }
+        
+        setSchedule(existingSchedule);
       }
-      
-      setTimeSlots(data.timeSlots || []);
+
+      // Buscar dias de folga
+      const daysOffRes = await fetch("/api/timeslots/days-off");
+      if (daysOffRes.ok) {
+        const daysOffData = await daysOffRes.json();
+        setDaysOff(daysOffData.daysOff || []);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar horários");
+      console.error("Erro ao carregar:", err);
     } finally {
       setLoading(false);
     }
   }
 
-  function clearMessages() {
+  function updateSchedule(dayOfWeek: number, field: keyof WorkSchedule, value: string | boolean) {
+    setSchedule(prev => prev.map(s => 
+      s.day_of_week === dayOfWeek ? { ...s, [field]: value } : s
+    ));
+  }
+
+  function copyToAllDays(sourceDayOfWeek: number) {
+    const source = schedule.find(s => s.day_of_week === sourceDayOfWeek);
+    if (!source) return;
+    
+    setSchedule(prev => prev.map(s => ({
+      ...s,
+      start_time: source.start_time,
+      end_time: source.end_time,
+      break_start: source.break_start,
+      break_end: source.break_end,
+    })));
+    
+    setSuccess("Horários copiados para todos os dias!");
+    setTimeout(() => setSuccess(""), 3000);
+  }
+
+  async function saveSchedule() {
+    setSaving(true);
     setError("");
     setSuccess("");
-  }
-
-
-  function handleInputChange(field: keyof TimeSlotFormData, value: string | boolean) {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  }
-
-  function handleEdit(timeSlot: TimeSlot) {
-    setFormData({
-      day_of_week: timeSlot.day_of_week.toString(),
-      start_time: timeSlot.start_time.substring(0, 5),
-      end_time: timeSlot.end_time.substring(0, 5),
-      available: timeSlot.available,
-    });
-    setEditingId(timeSlot.id);
-    setShowForm(true);
-    clearMessages();
-  }
-
-  function handleCancelEdit() {
-    setFormData(initialFormData);
-    setEditingId(null);
-    setShowForm(false);
-    clearMessages();
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    clearMessages();
-    setSubmitting(true);
 
     try {
-      const payload = {
-        day_of_week: parseInt(formData.day_of_week, 10),
-        start_time: formData.start_time,
-        end_time: formData.end_time,
-        available: formData.available,
-      };
-
-      // Validate
-      if (isNaN(payload.day_of_week) || payload.day_of_week < 0 || payload.day_of_week > 6) {
-        throw new Error("Dia da semana inválido");
-      }
-      if (!payload.start_time || !payload.end_time) {
-        throw new Error("Horários são obrigatórios");
-      }
-      if (payload.start_time >= payload.end_time) {
-        throw new Error("Horário de término deve ser após o horário de início");
+      // Primeiro, deletar todos os slots existentes
+      const deleteRes = await fetch("/api/timeslots/bulk", {
+        method: "DELETE",
+      });
+      
+      if (!deleteRes.ok) {
+        throw new Error("Erro ao limpar horários antigos");
       }
 
-      const url = editingId ? `/api/timeslots/${editingId}` : "/api/timeslots";
-      const method = editingId ? "PUT" : "POST";
+      // Criar novos slots para cada dia habilitado
+      const enabledDays = schedule.filter(s => s.enabled);
+      
+      for (const day of enabledDays) {
+        const response = await fetch("/api/timeslots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            day_of_week: day.day_of_week,
+            start_time: day.start_time,
+            end_time: day.end_time,
+            available: true,
+          }),
+        });
 
-      const response = await fetch(url, {
-        method,
+        if (!response.ok) {
+          throw new Error(`Erro ao salvar ${DAYS_OF_WEEK[day.day_of_week].label}`);
+        }
+      }
+
+      setSuccess("Horários salvos com sucesso! ✨");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function addDayOff() {
+    if (!newDayOff) return;
+    
+    try {
+      const response = await fetch("/api/timeslots/days-off", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ date: newDayOff, reason: newDayOffReason }),
       });
 
+      if (!response.ok) throw new Error("Erro ao adicionar folga");
+
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao salvar horário");
-      }
-
-      setSuccess(editingId ? "Horário atualizado com sucesso!" : "Horário criado com sucesso!");
-      setFormData(initialFormData);
-      setEditingId(null);
-      setShowForm(false);
-      await fetchTimeSlots();
+      setDaysOff(prev => [...prev, data.dayOff]);
+      setNewDayOff("");
+      setNewDayOffReason("");
+      setSuccess("Folga adicionada!");
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar horário");
-    } finally {
-      setSubmitting(false);
+      setError(err instanceof Error ? err.message : "Erro ao adicionar folga");
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este horário?")) {
-      return;
-    }
-
-    clearMessages();
-
+  async function removeDayOff(id: string) {
     try {
-      const response = await fetch(`/api/timeslots/${id}`, {
+      const response = await fetch(`/api/timeslots/days-off/${id}`, {
         method: "DELETE",
       });
 
-      const data = await response.json();
+      if (!response.ok) throw new Error("Erro ao remover folga");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao excluir horário");
-      }
-
-      setSuccess("Horário excluído com sucesso!");
-      await fetchTimeSlots();
+      setDaysOff(prev => prev.filter(d => d.id !== id));
+      setSuccess("Folga removida!");
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao excluir horário");
+      setError(err instanceof Error ? err.message : "Erro ao remover folga");
     }
   }
 
-  async function handleToggleAvailable(timeSlot: TimeSlot) {
-    clearMessages();
-
-    try {
-      const response = await fetch(`/api/timeslots/${timeSlot.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ available: !timeSlot.available }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao atualizar horário");
-      }
-
-      await fetchTimeSlots();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar horário");
-    }
+  function formatDateDisplay(dateStr: string) {
+    const date = new Date(dateStr + "T12:00:00");
+    return date.toLocaleDateString("pt-BR", { 
+      weekday: "long", 
+      day: "2-digit", 
+      month: "long" 
+    });
   }
 
-  function getDayName(dayOfWeek: number): string {
-    return DAYS_OF_WEEK.find(d => d.value === dayOfWeek)?.label || "";
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-neutral-soft p-4 sm:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative inline-block">
+            <div className="w-12 h-12 border-4 border-pastel-rose rounded-full" />
+            <div className="w-12 h-12 border-4 border-rose-gold border-t-transparent rounded-full animate-spin absolute inset-0" />
+          </div>
+          <p className="text-gray-500 mt-4">Carregando...</p>
+        </div>
+      </main>
+    );
   }
-
-  function formatTime(time: string): string {
-    return time.substring(0, 5);
-  }
-
-  // Group time slots by day of week
-  function getGroupedTimeSlots(): Map<number, TimeSlot[]> {
-    const grouped = new Map<number, TimeSlot[]>();
-    for (const slot of timeSlots) {
-      const existing = grouped.get(slot.day_of_week) || [];
-      existing.push(slot);
-      grouped.set(slot.day_of_week, existing);
-    }
-    return grouped;
-  }
-
-
-  const groupedTimeSlots = getGroupedTimeSlots();
 
   return (
-    <main className="min-h-screen bg-neutral-soft p-8">
+    <main className="min-h-screen bg-neutral-soft p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link 
-              href="/admin" 
-              className="text-rose-gold hover:text-rose-gold-dark text-sm mb-2 inline-block"
-            >
-              ← Voltar ao Dashboard
-            </Link>
-            <h1 className="font-display text-3xl text-rose-gold-dark">
-              Gestão de Horários
-            </h1>
-          </div>
-          {!showForm && (
-            <button
-              onClick={() => { setShowForm(true); clearMessages(); }}
-              className="bg-rose-gold hover:bg-rose-gold-dark text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            >
-              + Novo Horário
-            </button>
-          )}
+        <div className="mb-6">
+          <Link 
+            href="/admin" 
+            className="text-rose-gold hover:text-rose-gold-dark text-sm mb-2 inline-flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Voltar
+          </Link>
+          <h1 className="font-display text-2xl sm:text-3xl text-rose-gold-dark">
+            Meus Horários de Trabalho
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Configure seus dias e horários de atendimento
+          </p>
         </div>
 
         {/* Messages */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             {error}
           </div>
         )}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             {success}
           </div>
         )}
 
-        {/* Form */}
-        {showForm && (
-          <div className="bg-white p-6 rounded-xl shadow-soft mb-8">
-            <h2 className="font-display text-xl text-rose-gold-dark mb-4">
-              {editingId ? "Editar Horário" : "Novo Horário"}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="day_of_week" className="block text-sm font-medium text-gray-700 mb-1">
-                  Dia da Semana
-                </label>
-                <select
-                  id="day_of_week"
-                  value={formData.day_of_week}
-                  onChange={(e) => handleInputChange("day_of_week", e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none transition-all"
-                  disabled={submitting}
-                >
-                  {DAYS_OF_WEEK.map((day) => (
-                    <option key={day.value} value={day.value}>
-                      {day.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab("schedule")}
+            className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-medium transition-all ${
+              activeTab === "schedule"
+                ? "bg-rose-gold text-white shadow-glow"
+                : "bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            📅 Horários
+          </button>
+          <button
+            onClick={() => setActiveTab("daysoff")}
+            className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-medium transition-all ${
+              activeTab === "daysoff"
+                ? "bg-rose-gold text-white shadow-glow"
+                : "bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            🏖️ Folgas
+          </button>
+        </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-1">
-                    Horário de Início
-                  </label>
-                  <input
-                    type="time"
-                    id="start_time"
-                    value={formData.start_time}
-                    onChange={(e) => handleInputChange("start_time", e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none transition-all"
-                    disabled={submitting}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="end_time" className="block text-sm font-medium text-gray-700 mb-1">
-                    Horário de Término
-                  </label>
-                  <input
-                    type="time"
-                    id="end_time"
-                    value={formData.end_time}
-                    onChange={(e) => handleInputChange("end_time", e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none transition-all"
-                    disabled={submitting}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="available"
-                  checked={formData.available}
-                  onChange={(e) => handleInputChange("available", e.target.checked)}
-                  className="w-4 h-4 text-rose-gold border-gray-300 rounded focus:ring-rose-gold"
-                  disabled={submitting}
-                />
-                <label htmlFor="available" className="text-sm font-medium text-gray-700">
-                  Disponível para agendamento
-                </label>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-rose-gold hover:bg-rose-gold-dark text-white font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "Salvando..." : editingId ? "Atualizar" : "Criar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  disabled={submitting}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-
-        {/* Time Slots Grid */}
-        <div className="bg-white rounded-xl shadow-soft overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-display text-xl text-rose-gold-dark">
-              Grade de Horários
-            </h2>
-          </div>
-
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">
-              Carregando horários...
+        {activeTab === "schedule" && (
+          <>
+            {/* Dica */}
+            <div className="bg-pastel-cream rounded-xl p-4 mb-6 border border-pastel-rose/30">
+              <p className="text-sm text-rose-gold-dark flex items-start gap-2">
+                <span className="text-lg">💡</span>
+                <span>
+                  Ative os dias que você trabalha e defina o horário de início e fim. 
+                  Os horários disponíveis serão gerados automaticamente!
+                </span>
+              </p>
             </div>
-          ) : timeSlots.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              Nenhum horário cadastrado ainda.
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {DAYS_OF_WEEK.map((day) => {
-                const slots = groupedTimeSlots.get(day.value) || [];
-                if (slots.length === 0) return null;
-                
-                return (
-                  <div key={day.value} className="p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">{day.label}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                      {slots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className={`flex items-center justify-between p-3 rounded-lg border ${
-                            slot.available 
-                              ? "bg-pastel-cream border-rose-gold/20" 
-                              : "bg-gray-100 border-gray-200 opacity-60"
+
+            {/* Schedule Grid */}
+            <div className="bg-white rounded-2xl shadow-soft overflow-hidden mb-6">
+              <div className="divide-y divide-gray-100">
+                {schedule.map((day) => (
+                  <div 
+                    key={day.day_of_week} 
+                    className={`p-4 sm:p-5 transition-colors ${
+                      day.enabled ? "bg-white" : "bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      {/* Day toggle */}
+                      <div className="flex items-center gap-3 sm:w-36">
+                        <button
+                          onClick={() => updateSchedule(day.day_of_week, "enabled", !day.enabled)}
+                          className={`w-12 h-7 rounded-full transition-all relative ${
+                            day.enabled ? "bg-rose-gold" : "bg-gray-300"
                           }`}
                         >
+                          <span 
+                            className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${
+                              day.enabled ? "left-6" : "left-1"
+                            }`}
+                          />
+                        </button>
+                        <span className={`font-medium ${day.enabled ? "text-gray-900" : "text-gray-400"}`}>
+                          {DAYS_OF_WEEK[day.day_of_week].label}
+                        </span>
+                      </div>
+
+                      {/* Time inputs */}
+                      {day.enabled && (
+                        <div className="flex flex-wrap items-center gap-3 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className={`text-sm font-medium ${
-                              slot.available ? "text-gray-900" : "text-gray-500"
-                            }`}>
-                              {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                            </span>
-                            {!slot.available && (
-                              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
-                                Indisponível
-                              </span>
-                            )}
+                            <span className="text-sm text-gray-500">Das</span>
+                            <input
+                              type="time"
+                              value={day.start_time}
+                              onChange={(e) => updateSchedule(day.day_of_week, "start_time", e.target.value)}
+                              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-gold/20 focus:border-rose-gold outline-none text-center w-28"
+                            />
                           </div>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => handleToggleAvailable(slot)}
-                              className={`text-xs px-2 py-1 rounded transition-colors ${
-                                slot.available
-                                  ? "text-amber-600 hover:text-amber-700"
-                                  : "text-green-600 hover:text-green-700"
-                              }`}
-                              title={slot.available ? "Desativar" : "Ativar"}
-                            >
-                              {slot.available ? "Desativar" : "Ativar"}
-                            </button>
-                            <button
-                              onClick={() => handleEdit(slot)}
-                              className="text-rose-gold hover:text-rose-gold-dark text-xs px-2 py-1 rounded transition-colors"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleDelete(slot.id)}
-                              className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded transition-colors"
-                            >
-                              Excluir
-                            </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">às</span>
+                            <input
+                              type="time"
+                              value={day.end_time}
+                              onChange={(e) => updateSchedule(day.day_of_week, "end_time", e.target.value)}
+                              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-gold/20 focus:border-rose-gold outline-none text-center w-28"
+                            />
                           </div>
+                          
+                          {/* Copy button */}
+                          <button
+                            onClick={() => copyToAllDays(day.day_of_week)}
+                            className="text-xs text-rose-gold hover:text-rose-gold-dark px-2 py-1 rounded hover:bg-pastel-rose/30 transition-colors"
+                            title="Copiar para todos os dias"
+                          >
+                            Copiar p/ todos
+                          </button>
                         </div>
-                      ))}
+                      )}
+
+                      {!day.enabled && (
+                        <span className="text-sm text-gray-400 italic">Folga</span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Save Button */}
+            <button
+              onClick={saveSchedule}
+              disabled={saving}
+              className="w-full sm:w-auto bg-rose-gold hover:bg-rose-gold-dark text-white font-medium py-3 px-8 rounded-xl transition-all disabled:opacity-50 shadow-glow hover:shadow-lg active:scale-[0.98]"
+            >
+              {saving ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Salvando...
+                </span>
+              ) : "Salvar Horários"}
+            </button>
+          </>
+        )}
+
+        {activeTab === "daysoff" && (
+          <>
+            {/* Add Day Off */}
+            <div className="bg-white rounded-2xl shadow-soft p-5 mb-6">
+              <h3 className="font-medium text-gray-900 mb-4">Adicionar Folga</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="date"
+                  value={newDayOff}
+                  onChange={(e) => setNewDayOff(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-gold/20 focus:border-rose-gold outline-none"
+                />
+                <input
+                  type="text"
+                  value={newDayOffReason}
+                  onChange={(e) => setNewDayOffReason(e.target.value)}
+                  placeholder="Motivo (opcional)"
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-gold/20 focus:border-rose-gold outline-none"
+                />
+                <button
+                  onClick={addDayOff}
+                  disabled={!newDayOff}
+                  className="px-6 py-3 bg-rose-gold text-white rounded-xl font-medium hover:bg-rose-gold-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Adicionar
+                </button>
+              </div>
+            </div>
+
+            {/* Days Off List */}
+            <div className="bg-white rounded-2xl shadow-soft overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <h3 className="font-medium text-gray-900">Folgas Programadas</h3>
+              </div>
+              
+              {daysOff.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <span className="text-4xl mb-2 block">🏖️</span>
+                  <p>Nenhuma folga programada</p>
+                  <p className="text-sm mt-1">Adicione datas que você não vai trabalhar</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {daysOff
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .map((dayOff) => (
+                      <div key={dayOff.id || dayOff.date} className="p-4 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900 capitalize">
+                            {formatDateDisplay(dayOff.date)}
+                          </p>
+                          {dayOff.reason && (
+                            <p className="text-sm text-gray-500">{dayOff.reason}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => dayOff.id && removeDayOff(dayOff.id)}
+                          className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
