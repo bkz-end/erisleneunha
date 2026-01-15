@@ -102,6 +102,26 @@ export interface Database {
           available?: boolean;
         };
       };
+      days_off: {
+        Row: {
+          id: string;
+          date: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          date: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          date?: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+      };
       bookings: {
         Row: {
           id: string;
@@ -149,16 +169,19 @@ export type Subscription = Database["public"]["Tables"]["subscription"]["Row"];
 export type AdminUser = Database["public"]["Tables"]["admin_user"]["Row"];
 export type Service = Database["public"]["Tables"]["services"]["Row"];
 export type TimeSlot = Database["public"]["Tables"]["time_slots"]["Row"];
+export type DayOff = Database["public"]["Tables"]["days_off"]["Row"];
 export type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 
 export type InsertSubscription = Database["public"]["Tables"]["subscription"]["Insert"];
 export type InsertAdminUser = Database["public"]["Tables"]["admin_user"]["Insert"];
 export type InsertService = Database["public"]["Tables"]["services"]["Insert"];
 export type InsertTimeSlot = Database["public"]["Tables"]["time_slots"]["Insert"];
+export type InsertDayOff = Database["public"]["Tables"]["days_off"]["Insert"];
 export type InsertBooking = Database["public"]["Tables"]["bookings"]["Insert"];
 
 export type UpdateSubscription = Database["public"]["Tables"]["subscription"]["Update"];
 export type UpdateAdminUser = Database["public"]["Tables"]["admin_user"]["Update"];
 export type UpdateService = Database["public"]["Tables"]["services"]["Update"];
 export type UpdateTimeSlot = Database["public"]["Tables"]["time_slots"]["Update"];
+export type UpdateDayOff = Database["public"]["Tables"]["days_off"]["Update"];
 export type UpdateBooking = Database["public"]["Tables"]["bookings"]["Update"];
