@@ -59,9 +59,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
+    const payload = { date, reason: reason || null };
+    const { data, error } = await (supabase as any)
       .from("days_off")
-      .insert({ date, reason: reason || null })
+      .insert(payload)
       .select()
       .single();
 
