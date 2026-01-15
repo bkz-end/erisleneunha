@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // Configurações do Mercado Pago
 const MERCADO_PAGO_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 // Preço da assinatura
-const SUBSCRIPTION_PRICE = 45.90;
+const SUBSCRIPTION_PRICE = 30.0;
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     if (!MERCADO_PAGO_ACCESS_TOKEN || MERCADO_PAGO_ACCESS_TOKEN === "your_mercado_pago_access_token") {
       // Modo de desenvolvimento - retorna URL fake
       console.log("Mercado Pago não configurado, usando modo de teste");

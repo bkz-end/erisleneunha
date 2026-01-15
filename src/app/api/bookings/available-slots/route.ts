@@ -15,6 +15,13 @@ export const dynamic = "force-dynamic";
 interface AvailableSlot {
   time: string;
   dateTime: string;
+  endTime: string;
+}
+
+function formatTimeLabel(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 /**
@@ -138,6 +145,7 @@ export async function GET(request: NextRequest) {
     // Generate available slots
     const availableSlots: AvailableSlot[] = [];
     const serviceDuration = service.duration;
+    const stepMinutes = Math.max(serviceDuration, 1);
 
     for (const slot of timeSlots) {
       // Parse start and end times
@@ -165,16 +173,17 @@ export async function GET(request: NextRequest) {
         const isPast = slotStart <= now;
 
         if (!isOccupied && !isPast) {
+          const startLabel = formatTimeLabel(slotStart);
+          const endLabel = formatTimeLabel(slotEnd);
           availableSlots.push({
-            time: slot.start_time.substring(0, 5) === currentTime.toTimeString().substring(0, 5) 
-              ? slot.start_time.substring(0, 5)
-              : currentTime.toTimeString().substring(0, 5),
+            time: `${startLabel} - ${endLabel}`,
             dateTime: slotStart.toISOString(),
+            endTime: endLabel,
           });
         }
 
-        // Move to next slot (30 min intervals)
-        currentTime = new Date(currentTime.getTime() + 30 * 60 * 1000);
+        // Move to next slot based on service duration
+        currentTime = new Date(currentTime.getTime() + stepMinutes * 60 * 1000);
       }
     }
 

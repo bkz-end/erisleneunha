@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * Admin Login Page
- * 
- * Requirements:
- * - 4.1: Exigir autenticação segura para painel administrativo
- * - 5.1: Redirecionar para login se não autenticado
- * - 5.2: Criar sessão autenticada com credenciais válidas
- * - 5.3: Exibir mensagem de erro com credenciais inválidas
- */
-
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
@@ -41,7 +31,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to admin dashboard on success
       router.push("/admin");
       router.refresh();
     } catch {
@@ -53,12 +42,10 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gradient-luxury flex items-center justify-center p-4 sm:p-8 relative overflow-hidden">
-      {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-pastel-rose/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 bg-pastel-peach/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-      
+
       <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-soft max-w-md w-full relative z-10 border border-pastel-rose/30">
-        {/* Logo/Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pastel-rose to-pastel-peach flex items-center justify-center">
             <svg className="w-8 h-8 text-rose-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,12 +53,12 @@ export default function LoginPage() {
             </svg>
           </div>
         </div>
-        
+
         <h1 className="font-display text-xl sm:text-2xl text-rose-gold-dark text-center mb-2">
           Área Administrativa
         </h1>
         <p className="text-stone-500 text-sm text-center mb-6">
-          Faça login para acessar o painel
+          Faça login para acessar seu painel
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,10 +72,7 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
               Email
             </label>
             <input
@@ -104,10 +88,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
               Senha
             </label>
             <input
@@ -117,7 +98,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-gold/20 focus:border-rose-gold outline-none transition-all bg-white/50 text-base"
-              placeholder="••••••••"
+              placeholder="Digite sua senha"
               disabled={loading}
             />
           </div>

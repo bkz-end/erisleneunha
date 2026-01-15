@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * Services Management Page
- * 
- * Requirements:
- * - 4.4: Gestão de serviços (criar, editar, excluir) com campos: nome, preço, duração
- */
-
 import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import type { Service } from "@/types/database";
@@ -28,14 +21,12 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  
-  // Form state
+
   const [formData, setFormData] = useState<ServiceFormData>(initialFormData);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  // Fetch services on mount
   useEffect(() => {
     fetchServices();
   }, []);
@@ -45,11 +36,11 @@ export default function ServicesPage() {
       setLoading(true);
       const response = await fetch("/api/services");
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || "Erro ao carregar serviços");
       }
-      
+
       setServices(data.services || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar serviços");
@@ -64,7 +55,7 @@ export default function ServicesPage() {
   }
 
   function handleInputChange(field: keyof ServiceFormData, value: string) {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
   function handleEdit(service: Service) {
@@ -97,7 +88,6 @@ export default function ServicesPage() {
         duration: parseInt(formData.duration, 10),
       };
 
-      // Validate
       if (!payload.name) {
         throw new Error("Nome é obrigatório");
       }
@@ -177,36 +167,31 @@ export default function ServicesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-soft p-8">
+    <main className="min-h-screen bg-neutral-soft p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <Link 
-              href="/admin" 
-              className="text-rose-gold hover:text-rose-gold-dark text-sm mb-2 inline-block"
-            >
-              ← Voltar ao Dashboard
+            <Link href="/admin" className="text-rose-gold hover:text-rose-gold-dark text-sm mb-2 inline-block">
+              ← Voltar ao painel
             </Link>
-            <h1 className="font-display text-3xl text-rose-gold-dark">
-              Gestão de Serviços
-            </h1>
+            <h1 className="font-display text-3xl text-rose-gold-dark">Gestão de serviços</h1>
+            <p className="text-sm text-gray-500">Cadastre preços e tempos com clareza para suas clientes.</p>
           </div>
           {!showForm && (
             <button
-              onClick={() => { setShowForm(true); clearMessages(); }}
+              onClick={() => {
+                setShowForm(true);
+                clearMessages();
+              }}
               className="bg-rose-gold hover:bg-rose-gold-dark text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
-              + Novo Serviço
+              + Novo serviço
             </button>
           )}
         </div>
 
-        {/* Messages */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>
         )}
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
@@ -214,16 +199,15 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Form */}
         {showForm && (
           <div className="bg-white p-6 rounded-xl shadow-soft mb-8">
             <h2 className="font-display text-xl text-rose-gold-dark mb-4">
-              {editingId ? "Editar Serviço" : "Novo Serviço"}
+              {editingId ? "Editar serviço" : "Novo serviço"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome do Serviço
+                  Nome do serviço
                 </label>
                 <input
                   type="text"
@@ -232,12 +216,12 @@ export default function ServicesPage() {
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none transition-all"
-                  placeholder="Ex: Corte de Cabelo"
+                  placeholder="Ex: Esmaltação em gel"
                   disabled={submitting}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
                     Preço (R$)
@@ -251,7 +235,7 @@ export default function ServicesPage() {
                     min="0"
                     step="0.01"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none transition-all"
-                    placeholder="0.00"
+                    placeholder="0,00"
                     disabled={submitting}
                   />
                 </div>
@@ -295,22 +279,15 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Services List */}
         <div className="bg-white rounded-xl shadow-soft overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-display text-xl text-rose-gold-dark">
-              Serviços Cadastrados
-            </h2>
+            <h2 className="font-display text-xl text-rose-gold-dark">Serviços cadastrados</h2>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-gray-500">
-              Carregando serviços...
-            </div>
+            <div className="p-8 text-center text-gray-500">Carregando serviços...</div>
           ) : services.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              Nenhum serviço cadastrado ainda.
-            </div>
+            <div className="p-8 text-center text-gray-500">Nenhum serviço cadastrado ainda.</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {services.map((service) => (
@@ -324,16 +301,14 @@ export default function ServicesPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-gray-900">{service.name}</h3>
                       {!service.active && (
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
-                          Inativo
-                        </span>
+                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Inativo</span>
                       )}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
                       {formatPrice(service.price)} • {formatDuration(service.duration)}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleEdit(service)}
                       className="text-rose-gold hover:text-rose-gold-dark px-3 py-1 rounded transition-colors"

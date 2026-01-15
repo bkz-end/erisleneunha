@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // GET - Buscar WhatsApp configurado
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const client = createServerClient();
     
     const { data } = await client
@@ -22,6 +28,11 @@ export async function GET() {
 // POST - Salvar WhatsApp
 export async function POST(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const { whatsapp } = await request.json();
     const client = createServerClient();
 

@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const { id } = params;
 
     const { error } = await supabase

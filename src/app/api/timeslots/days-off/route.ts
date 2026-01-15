@@ -6,11 +6,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const { data, error } = await supabase
       .from("days_off")
       .select("*")
@@ -38,6 +44,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const body = await request.json();
     const { date, reason } = body;
 

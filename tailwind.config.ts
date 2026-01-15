@@ -44,8 +44,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-playfair)", "Georgia", "serif"],
+        sans: ["var(--font-manrope)", "system-ui", "sans-serif"],
+        display: ["var(--font-cormorant)", "Georgia", "serif"],
       },
       boxShadow: {
         soft: "0 4px 20px -2px rgba(183, 110, 121, 0.08), 0 2px 8px -2px rgba(183, 110, 121, 0.06)",
@@ -55,7 +55,7 @@ const config: Config = {
         elegant: "0 10px 40px -10px rgba(183, 110, 121, 0.12)",
       },
       backgroundImage: {
-        "gradient-luxury": "linear-gradient(135deg, #FDF2F8 0%, #FFFBEB 50%, #FFF1F2 100%)",
+        "gradient-luxury": "linear-gradient(135deg, #FFF4F7 0%, #FFF8E9 52%, #FDEEEF 100%)",
         "gradient-gold": "linear-gradient(135deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%)",
         "gradient-rose": "linear-gradient(135deg, #B76E79 0%, #E8B4B8 50%, #B76E79 100%)",
         "shimmer": "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",

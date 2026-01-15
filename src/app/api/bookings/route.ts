@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getServiceById } from "@/services/services";
+import { requireAdmin } from "@/lib/admin-auth";
 
 interface CreateBookingRequest {
   serviceId: string;
@@ -152,9 +153,16 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const date = searchParams.get("date");
+    const serviceId = searchParams.get("serviceId");
+    const queryText = searchParams.get("q");
 
     let query = supabase
       .from("bookings")
@@ -177,6 +185,20 @@ export async function GET(request: NextRequest) {
       const startOfDay = new Date(date + "T00:00:00").toISOString();
       const endOfDay = new Date(date + "T23:59:59").toISOString();
       query = query.gte("date_time", startOfDay).lte("date_time", endOfDay);
+    }
+
+    if (serviceId) {
+      query = query.eq("service_id", serviceId);
+    }
+
+    if (queryText && queryText.trim()) {
+      const text = queryText.trim();
+      const phone = text.replace(/\D/g, "");
+      const filters = [`client_name.ilike.%${text}%`];
+      if (phone) {
+        filters.push(`client_whatsapp.ilike.%${phone}%`);
+      }
+      query = query.or(filters.join(","));
     }
 
     const { data: bookings, error } = await query;

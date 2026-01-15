@@ -10,6 +10,7 @@
  */
 
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { createServerClient } from "@/lib/supabase";
 import type { AdminUser, InsertAdminUser } from "@/types/database";
 
@@ -47,6 +48,9 @@ const BCRYPT_SALT_ROUNDS = 10;
 
 // Cookie name for session
 export const SESSION_COOKIE_NAME = "admin_session";
+
+// Secret for signing session tokens
+const SESSION_SECRET = process.env.SESSION_SECRET;
 
 // ============================================================================
 // Password Hashing
@@ -92,16 +96,35 @@ export function isValidBcryptHash(str: string): boolean {
 // Session Management
 // ============================================================================
 
+function base64UrlEncode(input: string): string {
+  return Buffer.from(input).toString("base64url");
+}
+
+function base64UrlDecode(input: string): string {
+  return Buffer.from(input, "base64url").toString("utf-8");
+}
+
+function signPayload(payload: string): string {
+  if (!SESSION_SECRET) {
+    return "";
+  }
+  return crypto.createHmac("sha256", SESSION_SECRET).update(payload).digest("base64url");
+}
+
 /**
- * Create a session token (simple base64 encoded JSON)
- * In production, consider using JWT with proper signing
- * 
- * @param session - Session data to encode
- * @returns Base64 encoded session token
+ * Create a signed session token (payload.signature)
  */
 export function createSessionToken(session: Session): string {
   const json = JSON.stringify(session);
-  return Buffer.from(json).toString("base64");
+  const payload = base64UrlEncode(json);
+
+  if (!SESSION_SECRET) {
+    console.warn("SESSION_SECRET not set. Session tokens will be unsigned.");
+    return payload;
+  }
+
+  const signature = signPayload(payload);
+  return `${payload}.${signature}`;
 }
 
 /**
@@ -112,7 +135,27 @@ export function createSessionToken(session: Session): string {
  */
 export function parseSessionToken(token: string): Session | null {
   try {
-    const json = Buffer.from(token, "base64").toString("utf-8");
+    const [payload, signature] = token.split(".");
+    if (!payload) {
+      return null;
+    }
+
+    if (SESSION_SECRET) {
+      if (!signature) {
+        return null;
+      }
+      const expected = signPayload(payload);
+      const signatureBuffer = Buffer.from(signature);
+      const expectedBuffer = Buffer.from(expected);
+      if (signatureBuffer.length !== expectedBuffer.length) {
+        return null;
+      }
+      if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
+        return null;
+      }
+    }
+
+    const json = base64UrlDecode(payload);
     const session = JSON.parse(json) as Session;
     
     // Validate session structure

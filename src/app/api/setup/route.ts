@@ -3,12 +3,25 @@
  * REMOVER APÓS USAR!
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/services/auth";
 import { createServerClient } from "@/lib/supabase";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const setupSecret = process.env.SETUP_SECRET;
+    if (setupSecret) {
+      const { searchParams } = new URL(request.url);
+      const token = searchParams.get("token");
+      if (token !== setupSecret) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    }
+
     const client = createServerClient();
 
     // Limpar subscriptions duplicadas e manter apenas uma

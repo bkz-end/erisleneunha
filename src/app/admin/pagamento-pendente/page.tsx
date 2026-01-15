@@ -1,11 +1,3 @@
-/**
- * Payment Pending Page (Admin)
- * 
- * Requirements:
- * - 1.4: Redirecionar admin para tela de pagamento se inativo/expirado
- * - 1.5: Exibir mensagem "Sua assinatura está pendente. Regularize para reativar seu sistema."
- */
-
 "use client";
 
 import { useState } from "react";
@@ -32,19 +24,13 @@ export default function PagamentoPendentePage() {
 
   return (
     <main className="min-h-screen bg-gradient-luxury relative overflow-hidden flex items-center justify-center p-4 sm:p-8">
-      {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-48 sm:w-96 h-48 sm:h-96 bg-pastel-rose/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-48 sm:w-96 h-48 sm:h-96 bg-pastel-peach/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-      
+
       <div className="relative z-10 w-full max-w-md">
         <div className="card-glass p-6 sm:p-8 text-center">
           <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-5 sm:mb-6 rounded-full bg-gradient-to-br from-rose-gold to-rose-gold-dark flex items-center justify-center">
-            <svg
-              className="w-8 h-8 sm:w-10 sm:h-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -53,22 +39,21 @@ export default function PagamentoPendentePage() {
               />
             </svg>
           </div>
-          
+
           <h1 className="font-display text-xl sm:text-2xl text-rose-gold-dark mb-3 sm:mb-4">
-            Assinatura Pendente
+            Assinatura pendente
           </h1>
-          
+
           <p className="text-stone-500 mb-5 sm:mb-6 leading-relaxed text-sm sm:text-base">
             Sua assinatura está pendente. Regularize para reativar seu sistema.
           </p>
 
-          {/* Plano */}
           <div className="bg-gradient-to-br from-rose-gold to-rose-gold-dark rounded-2xl p-5 text-white mb-5 sm:mb-6">
-            <p className="text-rose-gold-light text-xs sm:text-sm">Plano Mensal</p>
-            <p className="text-2xl sm:text-3xl font-bold mt-1">R$ 45,90</p>
+            <p className="text-rose-gold-light text-xs sm:text-sm">Plano mensal</p>
+            <p className="text-2xl sm:text-3xl font-bold mt-1">R$ 30,00</p>
             <p className="text-rose-gold-light text-xs sm:text-sm mt-1">por mês</p>
           </div>
-          
+
           <button
             onClick={handlePayment}
             disabled={loading}
@@ -80,10 +65,10 @@ export default function PagamentoPendentePage() {
                 Processando...
               </span>
             ) : (
-              "Regularizar Pagamento"
+              "Regularizar pagamento"
             )}
           </button>
-          
+
           <p className="text-xs sm:text-sm text-stone-400 mt-4">
             Após o pagamento, seu sistema será reativado automaticamente.
           </p>

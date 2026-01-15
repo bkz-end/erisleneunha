@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getTimeSlots, createTimeSlot } from "@/services/timeslots";
-import { validateSession, SESSION_COOKIE_NAME } from "@/services/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 
 /**
  * GET /api/timeslots
@@ -15,13 +15,12 @@ import { validateSession, SESSION_COOKIE_NAME } from "@/services/auth";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Check for admin session to determine if we show all or only available
-    const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const sessionValidation = validateSession(sessionToken);
-    
-    // If admin is authenticated, show all time slots; otherwise only available
-    const availableOnly = !sessionValidation.valid;
-    const timeSlots = await getTimeSlots(availableOnly);
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
+    const timeSlots = await getTimeSlots(false);
 
     return NextResponse.json({ timeSlots });
   } catch (error) {
@@ -39,15 +38,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const sessionValidation = validateSession(sessionToken);
-
-    if (!sessionValidation.valid) {
-      return NextResponse.json(
-        { error: "Não autorizado" },
-        { status: 401 }
-      );
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
     }
 
     const body = await request.json();

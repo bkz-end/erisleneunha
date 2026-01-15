@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSubscriptionStatus } from "@/services/subscription";
+import { requireAdmin } from "@/lib/admin-auth";
 
 /**
  * GET /api/subscription
@@ -7,8 +8,13 @@ import { getSubscriptionStatus } from "@/services/subscription";
  * Returns the current subscription status
  * Requirements: 4.3, 4.6 - Exibir status da assinatura no dashboard
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const subscription = await getSubscriptionStatus();
 
     if (!subscription) {

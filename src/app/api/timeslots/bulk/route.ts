@@ -3,13 +3,19 @@
  * DELETE - Remove all time slots
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const { error } = await supabase
       .from("time_slots")
       .delete()

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -13,11 +13,11 @@ export default function AgendarPage() {
     async function fetchServices() {
       try {
         const response = await fetch("/api/services");
-        if (!response.ok) throw new Error("Erro ao carregar servicos");
+        if (!response.ok) throw new Error("Erro ao carregar serviços");
         const data = await response.json();
         setServices(data.services || []);
       } catch (err) {
-        setError("Nao foi possivel carregar os servicos. Tente novamente.");
+        setError("Não foi possível carregar os serviços. Tente novamente.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -39,31 +39,46 @@ export default function AgendarPage() {
 
   return (
     <main className="min-h-screen bg-gradient-luxury relative overflow-hidden">
-      {/* Decorative elements - menores no mobile */}
       <div className="absolute top-0 left-0 w-48 md:w-96 h-48 md:h-96 bg-pastel-rose/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-48 md:w-96 h-48 md:h-96 bg-pastel-peach/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
 
-      {/* Content */}
       <div className="relative z-10 px-4 sm:px-6">
-        {/* Header - otimizado para mobile */}
-        <header className="pt-10 sm:pt-16 pb-6 sm:pb-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/60 backdrop-blur-sm rounded-full mb-4 sm:mb-6 border border-rose-gold-light/30">
-            <span className="w-2 h-2 bg-rose-gold rounded-full animate-pulse-soft" />
-            <span className="text-xs sm:text-sm text-rose-gold-dark font-medium">Agendamento Online</span>
+        <header className="pt-8 sm:pt-16 pb-5 sm:pb-8 text-center">
+          <div className="flex justify-center mb-6 sm:mb-8">
+            <div className="relative inline-flex items-center max-w-[95vw]">
+              <div className="absolute inset-y-2.5 left-10 sm:left-16 right-0 rounded-[28px] bg-gradient-to-r from-[#F5E2D7] via-[#F9F1E9] to-[#EED6C9] shadow-elegant" />
+              <div className="absolute inset-y-3 left-14 sm:left-20 right-6 rounded-[26px] bg-white/60 blur-[1px]" />
+              <div className="relative z-10 flex items-center gap-3 sm:gap-4 pr-6 sm:pr-8 pl-0 py-2.5 sm:py-3">
+                <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-elegant ring-4 ring-white/70">
+                  <img
+                    src="/erislenefoto.png"
+                    alt="Foto da Erislene Ferreira"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="text-left">
+                  <p className="font-display text-2xl sm:text-3xl md:text-4xl text-stone-700 leading-none">
+                    Erislene Ferreira
+                  </p>
+                  <p className="text-[11px] sm:text-[12px] uppercase tracking-[0.28em] text-rose-gold mt-1">
+                    Designer de Unhas
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl text-rose-gold-dark mb-3 sm:mb-4 leading-tight">
-            Agende seu
-            <span className="block text-gold-gradient">Momento Especial</span>
+
+          <h1 className="font-display text-[2.15rem] sm:text-4xl md:text-5xl text-rose-gold-dark mb-3 sm:mb-4 leading-tight">
+            Sua beleza, no seu tempo
+            <span className="block text-gold-gradient">Agende com carinho</span>
           </h1>
-          
-          <p className="text-stone-500 text-sm sm:text-base max-w-sm mx-auto leading-relaxed px-2">
-            Escolha o serviço perfeito e reserve seu horário
+
+          <p className="text-stone-500 text-base sm:text-base max-w-md mx-auto leading-relaxed px-2">
+            Escolha o serviço, selecione o horário e confirme em poucos passos. Tudo simples e claro.
           </p>
         </header>
 
-        {/* Step Indicator - compacto no mobile */}
-        <div className="flex justify-center mb-8 sm:mb-12">
+        <div className="flex justify-center mb-6 sm:mb-10">
           <div className="flex items-center gap-2 sm:gap-3 bg-white/60 backdrop-blur-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border border-rose-gold-light/30">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-rose-gold text-white flex items-center justify-center text-xs sm:text-sm font-semibold shadow-glow">
@@ -88,8 +103,22 @@ export default function AgendarPage() {
           </div>
         </div>
 
-        {/* Services Grid - cards maiores e mais bonitos no mobile */}
-        <div className="max-w-5xl mx-auto pb-24">
+        <div className="max-w-3xl mx-auto mb-8 sm:mb-10">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              { title: "Escolha o serviço", text: "Veja preços e duração sem dúvidas." },
+              { title: "Selecione o horário", text: "Aparecem apenas horários livres." },
+              { title: "Confirme no WhatsApp", text: "Receba confirmação rapidinho." },
+            ].map((item) => (
+              <div key={item.title} className="card-glass p-4 text-center">
+                <p className="font-display text-rose-gold-dark">{item.title}</p>
+                <p className="text-xs text-stone-500 mt-1">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-5xl mx-auto pb-20 sm:pb-24">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="relative">
@@ -124,16 +153,15 @@ export default function AgendarPage() {
                   href={`/agendar/${service.id}`}
                   className="group block"
                 >
-                  <div className="card-luxury p-5 sm:p-6 h-full flex flex-col active:scale-[0.98] transition-transform">
-                    {/* Service header com ícone */}
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pastel-rose to-pastel-peach flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+                  <div className="card-luxury p-4 sm:p-6 h-full flex flex-col active:scale-[0.98] transition-transform">
+                    <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                      <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pastel-rose to-pastel-peach flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
                         <svg className="w-6 h-6 sm:w-7 sm:h-7 text-rose-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h2 className="font-display text-lg sm:text-xl text-rose-gold-dark mb-1 group-hover:text-rose-gold transition-colors truncate">
+                        <h2 className="font-display text-base sm:text-xl text-rose-gold-dark mb-1 group-hover:text-rose-gold transition-colors truncate">
                           {service.name}
                         </h2>
                         <div className="flex items-center gap-1.5 text-stone-500 text-sm">
@@ -145,12 +173,11 @@ export default function AgendarPage() {
                       </div>
                     </div>
 
-                    {/* Preço e botão */}
                     <div className="mt-auto pt-4 border-t border-pastel-rose/50 flex items-center justify-between">
-                      <span className="text-xl sm:text-2xl font-display text-rose-gold">
+                      <span className="text-lg sm:text-2xl font-display text-rose-gold">
                         {formatPrice(service.price)}
                       </span>
-                      <span className="flex items-center gap-2 bg-rose-gold/10 text-rose-gold px-4 py-2 rounded-full text-sm font-medium group-hover:bg-rose-gold group-hover:text-white transition-all">
+                      <span className="flex items-center gap-2 bg-rose-gold/10 text-rose-gold px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium group-hover:bg-rose-gold group-hover:text-white transition-all">
                         Agendar
                         <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -164,15 +191,11 @@ export default function AgendarPage() {
           )}
         </div>
 
-        {/* Footer decoration */}
         <div className="text-center pb-6">
-          <p className="text-stone-400 text-xs sm:text-sm">
-            ✨ Experiência exclusiva de beleza ✨
-          </p>
+          <p className="text-stone-400 text-xs sm:text-sm">Unhas novas, vida nova.</p>
         </div>
       </div>
 
-      {/* Admin link - menor no mobile */}
       <Link
         href="/admin/login"
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-rose-gold-muted hover:text-rose-gold hover:bg-white hover:shadow-soft transition-all duration-300 border border-pastel-rose/50"
@@ -186,3 +209,6 @@ export default function AgendarPage() {
     </main>
   );
 }
+
+
+

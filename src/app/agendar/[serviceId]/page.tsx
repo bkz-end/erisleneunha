@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import type { Service } from "@/types/database";
 interface AvailableSlot {
   time: string;
   dateTime: string;
+  endTime: string;
 }
 
 export default function SelecionarHorarioPage({
@@ -27,7 +28,6 @@ export default function SelecionarHorarioPage({
   const [error, setError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Gerar calendário do mês
   const generateCalendar = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -35,25 +35,23 @@ export default function SelecionarHorarioPage({
     const lastDay = new Date(year, month + 1, 0);
     const startingDay = firstDay.getDay();
     const totalDays = lastDay.getDate();
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const days: { date: Date | null; isToday: boolean; isPast: boolean; dayNum: number }[] = [];
-    
-    // Dias vazios no início
+
     for (let i = 0; i < startingDay; i++) {
       days.push({ date: null, isToday: false, isPast: true, dayNum: 0 });
     }
-    
-    // Dias do mês
+
     for (let day = 1; day <= totalDays; day++) {
       const date = new Date(year, month, day);
       const isPast = date < today;
       const isToday = date.getTime() === today.getTime();
       days.push({ date, isToday, isPast, dayNum: day });
     }
-    
+
     return days;
   };
 
@@ -71,7 +69,6 @@ export default function SelecionarHorarioPage({
   const goToNextMonth = () => {
     const newMonth = new Date(currentMonth);
     newMonth.setMonth(newMonth.getMonth() + 1);
-    // Limitar a 3 meses no futuro
     const maxMonth = new Date();
     maxMonth.setMonth(maxMonth.getMonth() + 3);
     if (newMonth <= maxMonth) {
@@ -83,11 +80,18 @@ export default function SelecionarHorarioPage({
     async function fetchService() {
       try {
         const response = await fetch(`/api/services/${serviceId}`);
-        if (!response.ok) { setError("Serviço não encontrado"); return; }
+        if (!response.ok) {
+          setError("Serviço não encontrado");
+          return;
+        }
         const data = await response.json();
         setService(data.service);
-      } catch (err) { setError("Erro ao carregar"); console.error(err); }
-      finally { setLoading(false); }
+      } catch (err) {
+        setError("Erro ao carregar o serviço");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchService();
   }, [serviceId]);
@@ -98,18 +102,26 @@ export default function SelecionarHorarioPage({
       setLoadingSlots(true);
       setSelectedSlot(null);
       try {
-        const response = await fetch(`/api/bookings/available-slots?serviceId=${serviceId}&date=${selectedDate}`);
+        const response = await fetch(
+          `/api/bookings/available-slots?serviceId=${serviceId}&date=${selectedDate}`
+        );
         if (!response.ok) throw new Error("Erro");
         const data = await response.json();
         setAvailableSlots(data.slots || []);
-      } catch (err) { console.error(err); setAvailableSlots([]); }
-      finally { setLoadingSlots(false); }
+      } catch (err) {
+        console.error(err);
+        setAvailableSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
     }
     fetchSlots();
   }, [selectedDate, serviceId]);
 
-  const formatPrice = (price: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
-  const formatDuration = (minutes: number) => minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)}h${minutes % 60 > 0 ? ` ${minutes % 60}min` : ""}`;
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
+  const formatDuration = (minutes: number) =>
+    minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)}h${minutes % 60 > 0 ? ` ${minutes % 60}min` : ""}`;
 
   const handleDateSelect = (date: Date | null) => {
     if (!date) return;
@@ -147,7 +159,9 @@ export default function SelecionarHorarioPage({
             </svg>
           </div>
           <p className="text-rose-gold-dark mb-4">{error || "Serviço não encontrado"}</p>
-          <Link href="/agendar" className="text-rose-gold hover:text-rose-gold-dark">← Voltar</Link>
+          <Link href="/agendar" className="text-rose-gold hover:text-rose-gold-dark">
+            Voltar
+          </Link>
         </div>
       </main>
     );
@@ -155,25 +169,22 @@ export default function SelecionarHorarioPage({
 
   return (
     <main className="min-h-screen bg-gradient-luxury relative overflow-hidden">
-      {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-48 sm:w-80 h-48 sm:h-80 bg-pastel-rose/30 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
       <div className="absolute bottom-0 left-0 w-48 sm:w-80 h-48 sm:h-80 bg-pastel-peach/30 rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
 
       <div className="relative z-10 px-4 sm:px-6">
-        {/* Header */}
-        <header className="pt-8 sm:pt-12 pb-4 sm:pb-6 text-center">
+        <header className="pt-6 sm:pt-12 pb-4 sm:pb-6 text-center">
           <Link href="/agendar" className="inline-flex items-center gap-2 text-rose-gold hover:text-rose-gold-dark transition-colors mb-4">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             <span className="text-sm font-medium">Voltar</span>
           </Link>
-          
+
           <h1 className="font-display text-2xl sm:text-3xl text-rose-gold-dark mb-3">
-            Escolha o Horário
+            Escolha seu horário
           </h1>
-          
-          {/* Service info pill */}
+
           <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-2.5 bg-white/60 backdrop-blur-sm rounded-2xl border border-rose-gold-light/30">
             <span className="font-display text-rose-gold text-sm sm:text-base">{service.name}</span>
             <span className="hidden sm:block w-px h-4 bg-rose-gold-light" />
@@ -183,10 +194,9 @@ export default function SelecionarHorarioPage({
           </div>
         </header>
 
-        {/* Step Indicator - compacto */}
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-rose-gold-light/30">
-            <span className="w-6 h-6 rounded-full bg-rose-gold text-white flex items-center justify-center text-xs">✓</span>
+            <span className="w-6 h-6 rounded-full bg-rose-gold text-white flex items-center justify-center text-xs">1</span>
             <div className="w-6 h-px bg-rose-gold" />
             <span className="w-6 h-6 rounded-full bg-rose-gold text-white flex items-center justify-center text-xs font-bold">2</span>
             <div className="w-6 h-px bg-gray-300" />
@@ -195,9 +205,7 @@ export default function SelecionarHorarioPage({
         </div>
 
         <div className="max-w-lg mx-auto pb-8">
-          {/* Calendar */}
           <div className="card-glass p-4 sm:p-5 mb-5">
-            {/* Month navigation */}
             <div className="flex items-center justify-between mb-4">
               <button
                 onClick={goToPrevMonth}
@@ -220,7 +228,6 @@ export default function SelecionarHorarioPage({
               </button>
             </div>
 
-            {/* Week days header */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {weekDays.map((day) => (
                 <div key={day} className="text-center text-xs font-medium text-stone-400 py-2">
@@ -229,16 +236,15 @@ export default function SelecionarHorarioPage({
               ))}
             </div>
 
-            {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((day, index) => {
                 if (!day.date) {
                   return <div key={`empty-${index}`} className="aspect-square" />;
                 }
-                
+
                 const dateStr = day.date.toISOString().split("T")[0];
                 const isSelected = selectedDate === dateStr;
-                
+
                 return (
                   <button
                     key={dateStr}
@@ -261,7 +267,6 @@ export default function SelecionarHorarioPage({
             </div>
           </div>
 
-          {/* Time Selection */}
           {selectedDate && (
             <div className="card-glass p-4 sm:p-5 mb-5">
               <h3 className="font-medium text-rose-gold-dark mb-3 flex items-center gap-2">
@@ -270,7 +275,7 @@ export default function SelecionarHorarioPage({
                 </svg>
                 Horários disponíveis
               </h3>
-              
+
               {loadingSlots ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="relative">
@@ -290,12 +295,12 @@ export default function SelecionarHorarioPage({
                   <p className="text-stone-400 text-xs mt-1">Tente outra data</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                   {availableSlots.map((slot) => (
                     <button
                       key={slot.dateTime}
                       onClick={() => setSelectedSlot(slot)}
-                      className={`py-3 px-2 rounded-xl text-center text-sm font-medium transition-all ${
+                      className={`py-3.5 px-2 rounded-xl text-center text-sm font-medium transition-all ${
                         selectedSlot?.dateTime === slot.dateTime
                           ? "bg-rose-gold text-white shadow-glow scale-105"
                           : "bg-pastel-cream/70 text-stone-600 hover:bg-pastel-rose/50 active:scale-95"
@@ -309,18 +314,18 @@ export default function SelecionarHorarioPage({
             </div>
           )}
 
-          {/* Summary & Continue */}
           <div className="card-glass p-4 sm:p-5">
             {selectedSlot ? (
               <div className="mb-4 p-4 bg-pastel-cream/50 rounded-xl">
                 <p className="text-sm text-stone-500 mb-1">Você selecionou:</p>
-                <p className="font-display text-rose-gold-dark">
-                  {new Date(selectedDate + "T12:00:00").toLocaleDateString("pt-BR", { 
-                    weekday: "long", 
-                    day: "2-digit", 
-                    month: "long" 
-                  })} às <span className="text-rose-gold font-bold">{selectedSlot.time}</span>
-                </p>
+              <p className="font-display text-rose-gold-dark">
+                {new Date(selectedDate + "T12:00:00").toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                })}{" "}
+                • <span className="text-rose-gold font-bold">{selectedSlot.time}</span>
+              </p>
               </div>
             ) : (
               <div className="mb-4 p-4 bg-gray-50 rounded-xl text-center">

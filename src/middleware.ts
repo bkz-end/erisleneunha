@@ -166,13 +166,74 @@ interface Session {
  * - 5.1: Redirecionar para login se não autenticado
  * - 5.5: Redirecionar para login quando sessão expira
  */
-function validateSessionToken(token: string | undefined): { valid: boolean; session?: Session } {
+function base64UrlToUint8Array(base64Url: string): Uint8Array {
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function base64UrlDecode(base64Url: string): string {
+  const bytes = base64UrlToUint8Array(base64Url);
+  return new TextDecoder().decode(bytes);
+}
+
+function bufferToBase64Url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function verifySignature(payload: string, signature: string, secret: string): Promise<boolean> {
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const signed = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+    const expected = bufferToBase64Url(signed);
+    return expected === signature;
+  } catch {
+    return false;
+  }
+}
+
+async function validateSessionToken(token: string | undefined): Promise<{ valid: boolean; session?: Session }> {
   if (!token) {
     return { valid: false };
   }
 
   try {
-    const json = Buffer.from(token, "base64").toString("utf-8");
+    const [payload, signature] = token.split(".");
+    const secret = process.env.SESSION_SECRET;
+    const decodedPayload = payload ? payload : token;
+
+    if (secret && !signature) {
+      return { valid: false };
+    }
+
+    if (signature) {
+      if (!secret) {
+        return { valid: false };
+      }
+      const isValidSignature = await verifySignature(decodedPayload, signature, secret);
+      if (!isValidSignature) {
+        return { valid: false };
+      }
+    }
+
+    const json = base64UrlDecode(decodedPayload);
     const session = JSON.parse(json) as Session;
 
     // Validate session structure
@@ -237,7 +298,7 @@ export async function middleware(request: NextRequest) {
   // Requirements 4.1, 5.1, 5.5
   if (isAdminRouteRequiringAuth(pathname)) {
     const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const { valid } = validateSessionToken(sessionToken);
+    const { valid } = await validateSessionToken(sessionToken);
 
     if (!valid) {
       // Redirect to login if not authenticated or session expired

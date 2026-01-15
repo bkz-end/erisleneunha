@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getTimeSlotById, updateTimeSlot, deleteTimeSlot } from "@/services/timeslots";
-import { validateSession, SESSION_COOKIE_NAME } from "@/services/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,6 +22,11 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
+    }
+
     const { id } = await params;
     const timeSlot = await getTimeSlotById(id);
 
@@ -51,15 +56,9 @@ export async function PUT(
   { params }: RouteParams
 ) {
   try {
-    // Verify admin authentication
-    const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const sessionValidation = validateSession(sessionToken);
-
-    if (!sessionValidation.valid) {
-      return NextResponse.json(
-        { error: "Não autorizado" },
-        { status: 401 }
-      );
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
     }
 
     const { id } = await params;
@@ -165,15 +164,9 @@ export async function DELETE(
   { params }: RouteParams
 ) {
   try {
-    // Verify admin authentication
-    const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const sessionValidation = validateSession(sessionToken);
-
-    if (!sessionValidation.valid) {
-      return NextResponse.json(
-        { error: "Não autorizado" },
-        { status: 401 }
-      );
+    const auth = requireAdmin(request);
+    if (auth) {
+      return auth;
     }
 
     const { id } = await params;

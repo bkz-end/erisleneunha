@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * Time Slots Management Page - VERSÃO MELHORADA
- * 
- * Sistema inteligente de horários:
- * - Define horário de trabalho por dia da semana
- * - Intervalo automático entre atendimentos
- * - Dias de folga
- * - Geração automática de slots
- */
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
@@ -38,9 +28,9 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Sábado", short: "Sáb" },
 ];
 
-const DEFAULT_SCHEDULE: WorkSchedule[] = DAYS_OF_WEEK.map(day => ({
+const DEFAULT_SCHEDULE: WorkSchedule[] = DAYS_OF_WEEK.map((day) => ({
   day_of_week: day.value,
-  enabled: day.value >= 1 && day.value <= 5, // Seg-Sex por padrão
+  enabled: day.value >= 1 && day.value <= 5,
   start_time: "09:00",
   end_time: "18:00",
   break_start: "12:00",
@@ -67,13 +57,12 @@ export default function TimeSlotsPage() {
       setLoading(true);
       const response = await fetch("/api/timeslots");
       const data = await response.json();
-      
+
       if (data.timeSlots && data.timeSlots.length > 0) {
-        // Converter slots existentes para o novo formato
         const existingSchedule = [...DEFAULT_SCHEDULE];
-        
+
         for (const slot of data.timeSlots) {
-          const dayIndex = existingSchedule.findIndex(s => s.day_of_week === slot.day_of_week);
+          const dayIndex = existingSchedule.findIndex((s) => s.day_of_week === slot.day_of_week);
           if (dayIndex !== -1) {
             existingSchedule[dayIndex] = {
               ...existingSchedule[dayIndex],
@@ -83,11 +72,10 @@ export default function TimeSlotsPage() {
             };
           }
         }
-        
+
         setSchedule(existingSchedule);
       }
 
-      // Buscar dias de folga
       const daysOffRes = await fetch("/api/timeslots/days-off");
       if (daysOffRes.ok) {
         const daysOffData = await daysOffRes.json();
@@ -101,23 +89,23 @@ export default function TimeSlotsPage() {
   }
 
   function updateSchedule(dayOfWeek: number, field: keyof WorkSchedule, value: string | boolean) {
-    setSchedule(prev => prev.map(s => 
-      s.day_of_week === dayOfWeek ? { ...s, [field]: value } : s
-    ));
+    setSchedule((prev) => prev.map((s) => (s.day_of_week === dayOfWeek ? { ...s, [field]: value } : s)));
   }
 
   function copyToAllDays(sourceDayOfWeek: number) {
-    const source = schedule.find(s => s.day_of_week === sourceDayOfWeek);
+    const source = schedule.find((s) => s.day_of_week === sourceDayOfWeek);
     if (!source) return;
-    
-    setSchedule(prev => prev.map(s => ({
-      ...s,
-      start_time: source.start_time,
-      end_time: source.end_time,
-      break_start: source.break_start,
-      break_end: source.break_end,
-    })));
-    
+
+    setSchedule((prev) =>
+      prev.map((s) => ({
+        ...s,
+        start_time: source.start_time,
+        end_time: source.end_time,
+        break_start: source.break_start,
+        break_end: source.break_end,
+      }))
+    );
+
     setSuccess("Horários copiados para todos os dias!");
     setTimeout(() => setSuccess(""), 3000);
   }
@@ -128,18 +116,16 @@ export default function TimeSlotsPage() {
     setSuccess("");
 
     try {
-      // Primeiro, deletar todos os slots existentes
       const deleteRes = await fetch("/api/timeslots/bulk", {
         method: "DELETE",
       });
-      
+
       if (!deleteRes.ok) {
         throw new Error("Erro ao limpar horários antigos");
       }
 
-      // Criar novos slots para cada dia habilitado
-      const enabledDays = schedule.filter(s => s.enabled);
-      
+      const enabledDays = schedule.filter((s) => s.enabled);
+
       for (const day of enabledDays) {
         const response = await fetch("/api/timeslots", {
           method: "POST",
@@ -157,7 +143,7 @@ export default function TimeSlotsPage() {
         }
       }
 
-      setSuccess("Horários salvos com sucesso! ✨");
+      setSuccess("Horários salvos com sucesso!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar");
@@ -168,7 +154,7 @@ export default function TimeSlotsPage() {
 
   async function addDayOff() {
     if (!newDayOff) return;
-    
+
     try {
       const response = await fetch("/api/timeslots/days-off", {
         method: "POST",
@@ -179,7 +165,7 @@ export default function TimeSlotsPage() {
       if (!response.ok) throw new Error("Erro ao adicionar folga");
 
       const data = await response.json();
-      setDaysOff(prev => [...prev, data.dayOff]);
+      setDaysOff((prev) => [...prev, data.dayOff]);
       setNewDayOff("");
       setNewDayOffReason("");
       setSuccess("Folga adicionada!");
@@ -197,7 +183,7 @@ export default function TimeSlotsPage() {
 
       if (!response.ok) throw new Error("Erro ao remover folga");
 
-      setDaysOff(prev => prev.filter(d => d.id !== id));
+      setDaysOff((prev) => prev.filter((d) => d.id !== id));
       setSuccess("Folga removida!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
@@ -207,10 +193,10 @@ export default function TimeSlotsPage() {
 
   function formatDateDisplay(dateStr: string) {
     const date = new Date(dateStr + "T12:00:00");
-    return date.toLocaleDateString("pt-BR", { 
-      weekday: "long", 
-      day: "2-digit", 
-      month: "long" 
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
     });
   }
 
@@ -231,26 +217,17 @@ export default function TimeSlotsPage() {
   return (
     <main className="min-h-screen bg-neutral-soft p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-6">
-          <Link 
-            href="/admin" 
-            className="text-rose-gold hover:text-rose-gold-dark text-sm mb-2 inline-flex items-center gap-1"
-          >
+          <Link href="/admin" className="text-rose-gold hover:text-rose-gold-dark text-sm mb-2 inline-flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Voltar
           </Link>
-          <h1 className="font-display text-2xl sm:text-3xl text-rose-gold-dark">
-            Meus Horários de Trabalho
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Configure seus dias e horários de atendimento
-          </p>
+          <h1 className="font-display text-2xl sm:text-3xl text-rose-gold-dark">Meus horários de trabalho</h1>
+          <p className="text-gray-500 text-sm mt-1">Configure seus dias e horários de atendimento.</p>
         </div>
 
-        {/* Messages */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,63 +245,48 @@ export default function TimeSlotsPage() {
           </div>
         )}
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setActiveTab("schedule")}
             className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-medium transition-all ${
-              activeTab === "schedule"
-                ? "bg-rose-gold text-white shadow-glow"
-                : "bg-white text-gray-600 hover:bg-gray-50"
+              activeTab === "schedule" ? "bg-rose-gold text-white shadow-glow" : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >
-            📅 Horários
+            Horários
           </button>
           <button
             onClick={() => setActiveTab("daysoff")}
             className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-medium transition-all ${
-              activeTab === "daysoff"
-                ? "bg-rose-gold text-white shadow-glow"
-                : "bg-white text-gray-600 hover:bg-gray-50"
+              activeTab === "daysoff" ? "bg-rose-gold text-white shadow-glow" : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >
-            🏖️ Folgas
+            Folgas
           </button>
         </div>
 
         {activeTab === "schedule" && (
           <>
-            {/* Dica */}
             <div className="bg-pastel-cream rounded-xl p-4 mb-6 border border-pastel-rose/30">
               <p className="text-sm text-rose-gold-dark flex items-start gap-2">
                 <span className="text-lg">💡</span>
-                <span>
-                  Ative os dias que você trabalha e defina o horário de início e fim. 
-                  Os horários disponíveis serão gerados automaticamente!
-                </span>
+                <span>Ative os dias que você trabalha e defina o horário de início e fim.</span>
               </p>
             </div>
 
-            {/* Schedule Grid */}
             <div className="bg-white rounded-2xl shadow-soft overflow-hidden mb-6">
               <div className="divide-y divide-gray-100">
                 {schedule.map((day) => (
-                  <div 
-                    key={day.day_of_week} 
-                    className={`p-4 sm:p-5 transition-colors ${
-                      day.enabled ? "bg-white" : "bg-gray-50"
-                    }`}
+                  <div
+                    key={day.day_of_week}
+                    className={`p-4 sm:p-5 transition-colors ${day.enabled ? "bg-white" : "bg-gray-50"}`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      {/* Day toggle */}
                       <div className="flex items-center gap-3 sm:w-36">
                         <button
                           onClick={() => updateSchedule(day.day_of_week, "enabled", !day.enabled)}
-                          className={`w-12 h-7 rounded-full transition-all relative ${
-                            day.enabled ? "bg-rose-gold" : "bg-gray-300"
-                          }`}
+                          className={`w-12 h-7 rounded-full transition-all relative ${day.enabled ? "bg-rose-gold" : "bg-gray-300"}`}
                         >
-                          <span 
+                          <span
                             className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${
                               day.enabled ? "left-6" : "left-1"
                             }`}
@@ -335,7 +297,6 @@ export default function TimeSlotsPage() {
                         </span>
                       </div>
 
-                      {/* Time inputs */}
                       {day.enabled && (
                         <div className="flex flex-wrap items-center gap-3 flex-1">
                           <div className="flex items-center gap-2">
@@ -348,7 +309,7 @@ export default function TimeSlotsPage() {
                             />
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">às</span>
+                            <span className="text-sm text-gray-500">Às</span>
                             <input
                               type="time"
                               value={day.end_time}
@@ -356,28 +317,23 @@ export default function TimeSlotsPage() {
                               className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-gold/20 focus:border-rose-gold outline-none text-center w-28"
                             />
                           </div>
-                          
-                          {/* Copy button */}
+
                           <button
                             onClick={() => copyToAllDays(day.day_of_week)}
                             className="text-xs text-rose-gold hover:text-rose-gold-dark px-2 py-1 rounded hover:bg-pastel-rose/30 transition-colors"
-                            title="Copiar para todos os dias"
                           >
                             Copiar p/ todos
                           </button>
                         </div>
                       )}
 
-                      {!day.enabled && (
-                        <span className="text-sm text-gray-400 italic">Folga</span>
-                      )}
+                      {!day.enabled && <span className="text-sm text-gray-400 italic">Folga</span>}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Save Button */}
             <button
               onClick={saveSchedule}
               disabled={saving}
@@ -391,16 +347,17 @@ export default function TimeSlotsPage() {
                   </svg>
                   Salvando...
                 </span>
-              ) : "Salvar Horários"}
+              ) : (
+                "Salvar horários"
+              )}
             </button>
           </>
         )}
 
         {activeTab === "daysoff" && (
           <>
-            {/* Add Day Off */}
             <div className="bg-white rounded-2xl shadow-soft p-5 mb-6">
-              <h3 className="font-medium text-gray-900 mb-4">Adicionar Folga</h3>
+              <h3 className="font-medium text-gray-900 mb-4">Adicionar folga</h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="date"
@@ -426,17 +383,16 @@ export default function TimeSlotsPage() {
               </div>
             </div>
 
-            {/* Days Off List */}
             <div className="bg-white rounded-2xl shadow-soft overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100">
-                <h3 className="font-medium text-gray-900">Folgas Programadas</h3>
+                <h3 className="font-medium text-gray-900">Folgas programadas</h3>
               </div>
-              
+
               {daysOff.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  <span className="text-4xl mb-2 block">🏖️</span>
+                  <span className="text-4xl mb-2 block">🌿</span>
                   <p>Nenhuma folga programada</p>
-                  <p className="text-sm mt-1">Adicione datas que você não vai trabalhar</p>
+                  <p className="text-sm mt-1">Adicione datas em que você não vai trabalhar</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -445,12 +401,8 @@ export default function TimeSlotsPage() {
                     .map((dayOff) => (
                       <div key={dayOff.id || dayOff.date} className="p-4 flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-gray-900 capitalize">
-                            {formatDateDisplay(dayOff.date)}
-                          </p>
-                          {dayOff.reason && (
-                            <p className="text-sm text-gray-500">{dayOff.reason}</p>
-                          )}
+                          <p className="font-medium text-gray-900 capitalize">{formatDateDisplay(dayOff.date)}</p>
+                          {dayOff.reason && <p className="text-sm text-gray-500">{dayOff.reason}</p>}
                         </div>
                         <button
                           onClick={() => dayOff.id && removeDayOff(dayOff.id)}
