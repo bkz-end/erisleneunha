@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/admin-auth";
+import type { Database } from "@/types/database";
+
+type BookingWithService = Database["public"]["Tables"]["bookings"]["Row"] & {
+  services: { name: string; price: number } | null;
+};
 
 /**
  * GET /api/bookings/metrics
@@ -30,7 +35,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: monthError.message }, { status: 500 });
     }
 
-    const bookings = monthBookings || [];
+    const bookings = (monthBookings || []) as BookingWithService[];
 
     // Calcular métricas
     const totalMonth = bookings.length;
